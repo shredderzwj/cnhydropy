@@ -1,0 +1,7 @@
+*.js linguist-language=python
+*.css linguist-language=python
+*.html linguist-language=python
+*.ipynb linguist-language=python
+*.cpp linguist-language=python
+*.f90 linguist-language=python
+*.c linguist-language=python
