@@ -6,26 +6,43 @@
 
 ## 符号含义
 * $B$ —— 水面宽
+  
 * $b$ —— 底宽
+
 * $m$ —— 坡度系数
+
 * $r$ —— 圆弧半径
+
 * $\theta$ —— 圆弧角度
+
 * $H$ —— 水深
+
 * $\chi$ —— 湿周
+
 * $\omega$ —— 过水断面面积
+
 * $R$ —— 水力半径
 
 ## 一、梯形断面
 
 <center><svg xmlns="http://www.w3.org/2000/svg" width="389.899" height="200" viewBox="0 0 292.424 150"><g clip-path="url(#cp0)"><path stroke-width="1.090908" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M14.455 33.545h39.818l48 69.273H179.455l48-69.273h39.818M66.818 51.545H214.91M130.09 51.545h19.637M132.545 54h14.728M135 56.455h9.818M137.455 58.91h4.909M66.818 45.818V11.182M214.91 45.818V11.182M74.727 19.09h132.546"/><path d="M74.727 17.727v2.728l-7.909-1.364z"/><path stroke-width="1.090908" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M74.727 17.727v2.728l-7.909-1.364z"/><path d="M207.273 17.727v2.728l7.636-1.364z"/><path stroke-width="1.090908" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M207.273 17.727v2.728l7.636-1.364zM141.545 10.636l1.091.546.273.273.273.818v1.363l-.273.819-.273.272-1.09.546h-3V6.545h3l1.09.546.273.273.273.818V9l-.273.818-.273.546-1.09.272h-3M130.09 51.545h21.546M148.09 43.636h-15.817l7.909 7.91 7.909-7.91M218.727 102.818h27.818M218.727 51.545h27.818M238.91 94.91V59.454"/><path d="M237.545 94.91h2.728l-1.364 7.908z"/><path stroke-width="1.090908" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M237.545 94.91h2.728l-1.364 7.908z"/><path d="M237.545 59.455h2.728l-1.364-7.91z"/><path stroke-width="1.090908" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M237.545 59.455h2.728l-1.364-7.91zM235.09 79.364h-8.454M226.636 74.727h8.455M230.455 79.364v-4.637M102.273 109.364v25.09M179.455 109.364v25.09M110.182 126.818h61.636"/><path d="M110.182 125.455v2.454l-7.91-1.09z"/><path stroke-width="1.090908" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M110.182 125.455v2.454l-7.91-1.09z"/><path d="M171.818 125.455v2.454l7.637-1.09z"/><path stroke-width="1.090908" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M171.818 125.455v2.454l7.637-1.09zM139.09 122.727v-8.454M139.09 118.364l.546-.819.546-.272h1.09l.546.272.818.819.273 1.363v.818l-.273 1.091-.818.819-.545.272h-1.091l-.546-.272-.545-.819M88.636 67.09l.546.274h1.636l-7.09 4.909M90.818 72.273h-.545l-.273.545h.545l.273-.545M86.727 75h-.545v.545h.273l.272-.545M88.636 79.09l4.637-3M91.91 76.91h1.635l.546.272.545.818.273.818-.818 1.091-3.546 2.182M94.09 79.91h1.365l.818.272.545.818v.818l-.818.818-3.273 2.455"/></g></svg></center>
 
-$$B = b + 2Hm$$
+$$
+B = b + 2Hm
+$$
 
-$$\omega = (b + mH)H$$
+$$
+\omega = (b + mH)H
+$$
 
-$$\chi = b + 2H\sqrt{1+m^2}$$
 
-$$R = \frac{\omega}{\chi} = \frac{(b + mH)H}{b + 2H\sqrt{1+m^2}}$$
+$$
+\chi = b + 2H\sqrt{1+m^2}
+$$
+
+$$
+R = \frac{\omega}{\chi} = \frac{(b + mH)H}{b + 2H\sqrt{1+m^2}}
+$$
 
 ## 二、U形断面
 
@@ -48,7 +65,7 @@ B = \begin{cases}
 \end{cases}
 $$
 
- $$
+$$
 \omega=\begin{cases} 
     \frac{r^2}{2} \left(\alpha - sin\alpha \right) & 
         \ H \le h\\
@@ -66,18 +83,30 @@ $$
 \end{cases}
 $$
 
-$$R=\frac{\omega}{\chi}$$
+$$
+R=\frac{\omega}{\chi}
+$$
 
 ## 三、圆形断面
 
 <center><svg xmlns="http://www.w3.org/2000/svg" width="221.569" height="200" viewBox="0 0 166.176 150"><g clip-path="url(#cp0)"><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="bevel" fill="none" stroke="#000" d="M64.059 32.735L58.235 33l-5.559 1.059-5.558 1.588-5.294 2.382-5.03 2.912-4.765 3.441-4.235 3.97-3.706 4.5-3.176 4.766-2.647 5.294-1.853 5.294-1.324 5.559-.794 5.823v5.824l.794 5.823 1.324 5.56 1.853 5.293 2.647 5.294 3.176 4.765 3.706 4.5 4.235 3.97 4.765 3.442 5.03 2.912 5.294 2.382 5.558 1.588 5.56 1.059 5.823.265 5.823-.265 5.56-1.059L81 129.353l5.294-2.382 5.03-2.912 4.764-3.441 4.236-3.97 3.705-4.5 3.177-4.766 2.647-5.294 1.853-5.294 1.323-5.559.795-5.823v-5.824l-.795-5.823-1.323-5.56-1.853-5.293-2.647-5.294-3.177-4.765-3.705-4.5-4.236-3.97-4.764-3.442-5.03-2.912L81 35.647l-5.559-1.588L69.882 33l-5.823-.265"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M111.97 69.265H16.148M54.53 69.265h18.794M56.912 71.647h14.03M59.294 74.03h9.265M61.676 76.147h4.5M54.794 69.265h20.647M71.735 61.588H56.647l7.412 7.677 7.676-7.677M16.147 69.265l38.647 10.588M111.97 69.265L73.325 79.853"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="bevel" fill="none" stroke="#000" d="M47.382 85.412l.794 3.176 1.589 3.177 2.117 2.647 2.647 2.117 2.912 1.589 3.177 1.058 3.44.265 3.442-.265 3.176-1.058 2.912-1.589 2.647-2.117 2.118-2.647 1.588-3.177.794-3.176"/><path d="M46.059 85.412h2.647L47.647 78z"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="bevel" fill="none" stroke="#000" d="M46.059 85.412h2.647L47.647 78z"/><path d="M79.676 85.412h2.383L80.47 78z"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="bevel" fill="none" stroke="#000" d="M79.676 85.412h2.383L80.47 78z"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M55.324 92.559l-.265-.265v-.53l-.265-.529.265-.53v-.529l.265-.529v-.53l.529-.529.265-.53.264-.264.265-.53.53-.529.529-.53.53-.264.529-.265.53-.264h.529l.794-.265.53.265.264.264.264.265.265.794v1.06l-.265.529-.264.529-.265.794-.53.265-.529.794-.264.53-.53.264-.53.53-.793.264-.53.265-.794.265h-.794l-.53-.265-.264-.794v-.794l.265-.53v-.53l.529-.793.265-.53.53-.53.528-.793.795-.794.794-.53.53-.265.793-.264h1.588l.265.53v.793l-.265.53v.53l-.264.529-.265.529-.265.53-.53.529-.528.53-.53.793-.53.265-.793.53-.795.529-.794.265h-.53l-.528-.265"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M60.353 89.912l-3.706-2.118 3.706 2.382M16.147 52.324v-32.03M111.97 52.324v-32.03M23.559 27.706h81"/><path d="M23.559 26.647v2.382l-7.412-1.323z"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M23.559 26.647v2.382l-7.412-1.323z"/><path d="M104.559 26.647v2.382l7.412-1.323z"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M104.559 26.647v2.382l7.412-1.323zM64.853 19.765l.794.53.265.264.264.794v1.059l-.264.794-.265.53-.794.264H61.94v-7.941h2.912l.794.265.265.264.264.794v.794l-.264.795-.265.529-.794.265H61.94M87.088 132.265h49.765M64.059 69.265h72.794M129.441 124.853V76.676"/><path d="M128.382 124.853h2.383l-1.324 7.412z"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M128.382 124.853h2.383l-1.324 7.412z"/><path d="M128.382 76.676h2.383l-1.324-7.411z"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M128.382 76.676h2.383l-1.324-7.411zM125.735 102.882h-8.206M117.53 98.647h8.205M121.5 102.882v-4.235M64.059 82.5l41.823-11.647"/><path d="M105.618 70.059l6.353-.794-5.824 2.647z"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M105.618 70.059l6.353-.794-5.824 2.647zM64.059 82.5L22.235 70.853"/><path d="M21.97 71.912l-5.823-2.647 6.353.794z"/><path stroke-width="1.0588248" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000" d="M21.97 71.912l-5.823-2.647 6.353.794zM50.294 76.676v-5.294M50.294 73.765l.265-1.324.53-.794.793-.265h.794"/></g></svg></center>
 
-$$\theta = 2arccos \frac{r-H}{r}$$
+$$
+\theta = 2arccos \frac{r-H}{r}
+$$
 
-$$B = 2 \ \sqrt{H(2r-H)}$$
+$$
+B = 2 \ \sqrt{H(2r-H)}
+$$
 
-$$\omega = \frac{r^2}{2}(\theta - sin \theta)$$
+$$
+\omega = \frac{r^2}{2}(\theta - sin \theta)
+$$
 
-$$\chi = r \theta$$
+$$
+\chi = r \theta
+$$
 
-$$ R = \frac{\omega}{\chi} = \frac{r}{2}\left( 1 - \frac{sin \theta}{\theta} \right)$$
+$$
+R = \frac{\omega}{\chi} = \frac{r}{2}\left( 1 - \frac{sin \theta}{\theta} \right)
+$$

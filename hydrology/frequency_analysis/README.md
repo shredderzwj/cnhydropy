@@ -10,7 +10,7 @@
     
 
 ### 功能概述
-&ensp;本程序可一次完成一个水文系列频率计算的全部工作，对连续系列和不连续系列均为适用，根据输入的数据自动判断连续系列和不连续系列。本程序完成的工作内容包括：系列排队、计算经验频率及统计参数值、通过优选P-Ⅲ型曲线的参数$C_v, C_s$值进行适线或用目估法适线、绘制频率曲线图、计算所采用的频率曲线的各设计频率下的设计值等。本程序可以计算特长系列。
+&ensp;本程序可一次完成一个水文系列频率计算的全部工作，对连序系列和不连序系列均为适用，根据输入的数据自动判断连序系列和不连序系列。本程序完成的工作内容包括：系列排队、计算经验频率及统计参数值、通过优选P-Ⅲ型曲线的参数$C_v, C_s$值进行适线或用目估法适线、绘制频率曲线图、计算所采用的频率曲线的各设计频率下的设计值等。本程序可以计算特长系列。
     
 为满足工程的实际需要，本程序除可用优选统计参数的方法适线外，还可用目估适线法进行适线。因为本程序在用优选法适线时，对各经验点据是给以等权重的处理。而当需要对各点据给以非等权重的处理时（如：设计洪水中要求多照顾首几项洪水；在年径流计算时要多照顾末端；或由于基本资料精度差等），单用优选法就不合适，此时可改用目估适线法。为了减少目估适线时的盲目性，实际使用时，一般采用优选与目估适线相结合的方法，即先用优选法选出一条通过点群中心的频率曲线。在此基础上再用目估的方法对优选出的参数$C_v, C_s$做少许调整，重新适线，以达到对各点据给以不同权重的目的，获得满意的结果。本程序在一张图上可绘多条频率曲线（用彩色加以区别），以供适线之用。
 
@@ -99,26 +99,41 @@
     参考[https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html?highlight=gamma](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html?highlight=gamma)
 
     标准 Gamma 分布 ：
-$$f(x,a) = \frac{x^{a-1}e^{-x}}{\Gamma (a)}$$
-    使用$loc$和$scale=\frac{1}{\beta}$参数，对标准Gamma分布进行移动或缩放操作，则分布函数为：
+$$
+f(x,a) = \frac{x^{a-1}e^{-x}}{\Gamma (a)}
+$$
 
-$$\begin{align}
+使用$loc$和$scale=\frac{1}{\beta}$参数，对标准Gamma分布进行移动或缩放操作，则分布函数为：
+
+$$
+\begin{align}
 gamma.pdf(x, a, loc, scale) &= \frac{f(\frac{x - loc}{scale}, a)}{sacle} \\\\
      &= \frac{\beta^a \cdot (x - loc)^{a-1} \cdot e^{-\beta(x-loc)}} {\Gamma(a)}
-\end{align}$$
-    可推出：P-III曲线三参数$[C_v, C_s, avg]$与Gamma分布三参数$[a, loc, scale]$换算关系：
+\end{align}
 
-$$a = \frac{4}{C_s^2}$$
-$$loc = avg \cdot (1- \frac{2C_v}{C_s})$$
-$$scale = \frac{avg \cdot C_v \cdot C_s}{2}$$
+$$
+
+可推出：P-III曲线三参数$[C_v, C_s, avg]$与Gamma分布三参数$[a, loc, scale]$换算关系：
+
+$$
+a = \frac{4}{C_s^2}
+$$
+
+$$
+loc = avg \cdot (1- \frac{2C_v}{C_s})
+$$
+
+$$
+scale = \frac{avg \cdot C_v \cdot C_s}{2}
+$$
 
 ### class PearsonThreeContinuousFit(floods, methods='moment', is_fit_avg=True)
 
 + base PearsonThree
-+ 水文频率计算(连续系列),由于继承自P-III 曲线类，可以进行P-III 曲线相关计算，计算方法来自（SL44-2006《水利水电工程设计洪水计算规范》）
++ 水文频率计算(连序系列),由于继承自P-III 曲线类，可以进行P-III 曲线相关计算，计算方法来自（SL44-2006《水利水电工程设计洪水计算规范》）
 
 #### 初始化参数
-+ :param floods: list n*2 array like [(年份int, 洪水流量int), ……]  实测连续系列洪水资料
++ :param floods: list n*2 array like [(年份int, 洪水流量int), ……]  实测连序系列洪水资料
 + :param method: str or list 估计参数的方法
         "moment"->直接使用矩法(默认)；
 	"fit1"->适线法_离差平方和准则，采用矩法初步估计，然后适线；
@@ -172,13 +187,13 @@ $$scale = \frac{avg \cdot C_v \cdot C_s}{2}$$
 + def save(path, format='png', figsize=(15.3, 9.2), dpi=96, *args, **kwargs)
 
 ### class PearsonThreeDiscontinuousFit(floods, survey_floods, N, l, methods='fit1', is_fit_avg=True)
-水文频率计算(不连续系列)
+水文频率计算(不连序系列)
 
 #### 初始化参数
-+ :param floods: list n*2 array like [(年份int, 洪水流量int), ……]  实测连续系列洪水资料
++ :param floods: list n*2 array like [(年份int, 洪水流量int), ……]  实测连序系列洪水资料
 + :param survey: survey_floods: list n*2 array like [(年份int, 洪水流量int), ……]  历史调查特大洪水资料
 + :param N: int 重现期
-+ :param l: int 连续系列中的特大洪水项数
++ :param l: int 连序系列中的特大洪水项数
 + :param method: str or list 估计参数的方法
         "moment"->直接使用矩法(默认)；
 	"fit1"->适线法_离差平方和准则，采用矩法初步估计，然后适线；

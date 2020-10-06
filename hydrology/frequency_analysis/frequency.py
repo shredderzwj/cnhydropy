@@ -156,10 +156,10 @@ class PearsonThree(object):
 
 
 class PearsonThreeContinuousFit(PearsonThree):
-    """水文频率计算(连续系列),由于继承自P-III 曲线类，可以进行P-III 曲线相关计算"""
+    """水文频率计算(连序系列),由于继承自P-III 曲线类，可以进行P-III 曲线相关计算"""
     acceptable_methods = ['moment', 'fit1', 'fit2', 'fit3', 'manual']
 
-    def __init__(self, floods, methods='moment', is_fit_avg=True):
+    def __init__(self, floods, methods=['moment'], is_fit_avg=True):
         """
         :param floods: list n*2 array like [(年份int, 洪水流量float), ……]
         :param method: str or list 估计参数的方法
@@ -344,7 +344,7 @@ class PearsonThreeContinuousFit(PearsonThree):
             self.param = [cv, cs, avg]
 
     def _draw_scatter(self):
-        # 绘制连续洪水系列散点
+        # 绘制连序洪水系列散点
         pms = np.array(self.pms).T
         plt.scatter(self.norm.ppf(pms[2]) - self.U, pms[1], c='#000000', s=10, zorder=3, label="\n实测历年最大洪水\n")
 
@@ -362,14 +362,14 @@ class PearsonThreeContinuousFit(PearsonThree):
 
 
 class PearsonThreeDiscontinuousFit(PearsonThreeContinuousFit):
-    """水文频率计算(不连续系列),由于继承自P-III 曲线类，可以进行P-III 曲线相关计算"""
+    """水文频率计算(不连序系列),由于继承自P-III 曲线类，可以进行P-III 曲线相关计算"""
 
-    def __init__(self, floods, survey_floods, N, l, methods='fit1', is_fit_avg=True):
+    def __init__(self, floods, survey_floods, N, l, methods=['moment'], is_fit_avg=True):
         """
-        :param floods: list n*2 array like [(年份int, 洪水流量float), ……]  实测连续系列洪水资料
+        :param floods: list n*2 array like [(年份int, 洪水流量float), ……]  实测连序系列洪水资料
         :param survey_floods: list n*2 array like [(年份int, 洪水流量float), ……]  历史调查特大洪水资料
         :param N: int 重现期
-        :param l: int 连续系列中的特大洪水项数
+        :param l: int 连序系列中的特大洪水项数
         :param method: str or list 估计参数的方法
                             "moment"->直接使用矩法；
                             "fit1"->适线法_离差平方和准则，采用矩法初步估计，然后适线(默认)；
@@ -383,17 +383,17 @@ class PearsonThreeDiscontinuousFit(PearsonThreeContinuousFit):
         self.N = N
         self.l = l
 
-        # 所有洪水资料，包含连续系列和不连续系列
+        # 所有洪水资料，包含连序系列和不连序系列
         self.all_floods = sorted(floods + survey_floods, key=itemgetter(1), reverse=True)
-        # 特大洪水个数(包含历史调查和连续系列中选取的)
+        # 特大洪水个数(包含历史调查和连序系列中选取的)
         self.a = len(survey_floods) + l
-        # 连续洪水序列个数
+        # 连序洪水序列个数
         self.n = len(floods)
-        # 特大洪水(包含历史调查和连续系列中选取的)
+        # 特大洪水(包含历史调查和连序系列中选取的)
         self.extra_floods = sorted(
             survey_floods + sorted(floods, key=itemgetter(1), reverse=True)[0:l], key=itemgetter(1), reverse=True
         )
-        # 特大洪水的年份(包含历史调查和连续系列中选取的)
+        # 特大洪水的年份(包含历史调查和连序系列中选取的)
         self.extra_floods_years = [year for year, _ in self.extra_floods]
 
         super().__init__(floods, methods, is_fit_avg)
@@ -403,7 +403,7 @@ class PearsonThreeDiscontinuousFit(PearsonThreeContinuousFit):
         pm_d = [(year, q, (i + 1) / (self.N + 1)) for i, (year, q) in enumerate(self.all_floods) if
                 year in self.extra_floods_years]
 
-        # n-l 个连续洪水的经验频率
+        # n-l 个连序洪水的经验频率
         pm_c = [(year, q,
                  self.a / (self.N + 1) + (1 - self.a / (self.N + 1)) * (i + 1 - self.l) / (self.n - self.l + 1))
                 for i, (year, q) in enumerate(self.floods) if year not in self.extra_floods_years]
@@ -433,7 +433,7 @@ class PearsonThreeDiscontinuousFit(PearsonThreeContinuousFit):
         return [cv, cs, qa]
 
     def _draw_scatter(self):
-        # 绘制连续洪水系列散点
+        # 绘制连序洪水系列散点
         survey_years = list(zip(*self.survey_floods))[0]
         star_pms = np.array([[year, q, pm] for year, q, pm in self.pms if year in survey_years]).T
         pms = np.array([[year, q, pm] for year, q, pm in self.pms if year not in survey_years]).T

@@ -22,7 +22,8 @@ class Tree(object):
         if top.is_dir():
             self.tree_str += '|&nbsp;&nbsp;&nbsp;&nbsp;' * (tabs - 1) + "|---"*flag + '<b>%s</b><br>' % top.name
             for x in top.iterdir():
-                self.__tree(x, tabs + 1)
+                if not str(x).split(os.path.sep)[-1].startswith('.'):
+                    self.__tree(x, tabs + 1)
         else:
             if top.name.split('.')[-1] in ['md', 'markdown']:
                 file = str(top.absolute()).replace(self.root_dir, '.')
