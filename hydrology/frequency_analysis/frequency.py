@@ -1,30 +1,23 @@
 # -*- coding: utf-8 -*-
-# 水文相关计算包
+# 水文频率分析计算
 
 import re
-import numpy as np
-import scipy.special
-import scipy.stats
-import scipy.optimize
-from scipy import interpolate
 from operator import itemgetter
-import matplotlib.pyplot as plt
 
-# plt.switch_backend('agg')  # 切换 matplotlib 绘图后端为agg。
+import numpy as np
+from scipy import interpolate, stats, optimize
 
-# 设置 matplotlib 字体，解决中文乱码的问题（linux平台需要安装 SimHei 字体，macOS没用过）
-plt.rcParams['font.family'] = ['sans-serif']
-plt.rcParams['font.sans-serif'] = ['SimHei']
-plt.rcParams['axes.unicode_minus'] = False
+from cnhydropy.common import plt
 
 
 class PearsonThree(object):
     """
     P-III 曲线类，实际为一个gamma分布
-        gamma分布参考文档：https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html
+        gamma分布参考文档：
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html
     """
     colors = ['#ff0000', '#00ff00', '#0000ff', '#00ffff', '#ff00ff', '#ffff00']
-    norm = scipy.stats.norm()
+    norm = stats.norm()
 
     def __init__(self, cv, cs, avg=1):
         """
@@ -33,8 +26,9 @@ class PearsonThree(object):
         :param avg: float 均值（若单纯计算模比系数Kp，此项可不指定）
         """
         self.__ticks = [
-            '.01', '.02', '.05', '0.1', '0.2', '0.5', '1', '2', '5', '10', '20', '30', '40', '50', '60', '70',
-            '80', '90', '95', '98', '99', '99.7', '99.9', '99.97', '99.99'
+            '.01', '.02', '.05',  '0.1',  '0.2',   '0.5',     '1',  '2',  '5',
+             '10',  '20',  '30',   '40',   '50',    '60',    '70', '80', '90',
+             '95',  '98',  '99', '99.7', '99.9', '99.97', '99.99',
         ]
         self.ticks_array = np.array([float(x) for x in self.__ticks]) / 100
         self.__param = [cv, cs, avg]
@@ -82,7 +76,7 @@ class PearsonThree(object):
         shape = 4 / cs ** 2
         scale = avg * cv * cs / 2
         loc = avg * (1 - 2 * cv / cs)
-        return scipy.stats.gamma(shape, loc, scale)
+        return stats.gamma(shape, loc, scale)
 
     def calc_q(self, p):
         """计算设计频率下的流量"""
@@ -168,7 +162,8 @@ class PearsonThreeContinuousFit(PearsonThree):
                             "fit2"->适线法_离差绝对值和准则，采用矩法初步估计，然后适线；
                             "fit3"->适线法_相对离差平方和准则，采用矩法初步估计，然后适线。
                             "all" -> 以上所有方法对比
-        :param is_fit_avg: bool 适线时是否对均值进行寻优。True表示对均值寻优(默认)，False表示采用矩法计算的均值。
+        :param is_fit_avg: bool 适线时是否对均值进行寻优。True表示对均值寻优(默认)，
+                            False表示采用矩法计算的均值。
                             在 method设置为非"moment"时生效。
         """
 
@@ -213,10 +208,12 @@ class PearsonThreeContinuousFit(PearsonThree):
     @staticmethod
     def handle_floods_from_excel(data):
         """
-        处理从Excel表格中（或者其他文件）复制过来的数据，使之符合PearsonThreeContinuousFit初始化参数输入的floods值的格式
+        处理从Excel表格中（或者其他文件）复制过来的数据，使之符合PearsonThreeContinuousFit
+        初始化参数输入的floods值的格式
         :param data: str 复制的数据。数据要求：
                          (1)第一列为年份，第二列为洪水流量值，
-                         (2)中间以【空格、逗号、制表符、冒号、分号、星号、at符号、感叹号、竖线、斜杠线、井号】等分隔，
+                         (2)中间以【空格、逗号、制表符、冒号、分号、星号、at符号、感叹号、
+                            竖线、斜杠线、井号】等分隔，
                          (3)每行一组数据。
         :return: list [(年份int, 洪水流量float), ……]
         """
@@ -281,7 +278,8 @@ class PearsonThreeContinuousFit(PearsonThree):
 
     def _calc_params(self):
         """
-        使用矩法进行参数估计初值,然后用指定的准则优化拟合配线， 如果找不到最优解，将使用矩法估计的值
+        使用矩法进行参数估计初值,然后用指定的准则优化拟合配线，如果找不到最优解，
+        将使用矩法估计的值
         :return: dict {'method': [Cv, Cs, 均值], ...}
         """
         qs, pms = np.array(list(zip(*[[q, pm] for _, q, pm in self.pms])))
@@ -298,7 +296,7 @@ class PearsonThreeContinuousFit(PearsonThree):
             else:
                 init_param = self.param_moment[:-1]
             # 适线寻优
-            optimization_result = scipy.optimize.leastsq(
+            optimization_result = optimize.leastsq(
                 self.__optimize_goal_fit, np.array(init_param),
                 args=(qs, pms, avg_moment, method),
             )
@@ -346,7 +344,9 @@ class PearsonThreeContinuousFit(PearsonThree):
     def _draw_scatter(self):
         # 绘制连序洪水系列散点
         pms = np.array(self.pms).T
-        plt.scatter(self.norm.ppf(pms[2]) - self.U, pms[1], c='#000000', s=10, zorder=3, label="\n实测历年最大洪水\n")
+        plt.scatter(
+            self.norm.ppf(pms[2]) - self.U, pms[1], c='#000000', s=10,
+            zorder=3, label="\n实测历年最大洪水\n")
 
     def draw_curve(self, *args, **kwargs):
         fig = self.create_figure(*args, **kwargs)
@@ -355,7 +355,8 @@ class PearsonThreeContinuousFit(PearsonThree):
         for i, x in enumerate(self.params.values()):
             self.param = x
             super().draw_curve(
-                color=self.colors[i], linewidth=0.5 + 1.5 / len(self.params), alpha=0.8 + 0.2 / len(self.params)
+                color=self.colors[i], linewidth=0.5 + 1.5 / len(self.params),
+                alpha=0.8 + 0.2 / len(self.params)
             )
         self.param = param  # 恢复原来对象的使用参数
         return fig
@@ -366,8 +367,9 @@ class PearsonThreeDiscontinuousFit(PearsonThreeContinuousFit):
 
     def __init__(self, floods, survey_floods, N, l, methods=['moment'], is_fit_avg=True):
         """
-        :param floods: list n*2 array like [(年份int, 洪水流量float), ……]  实测连序系列洪水资料
-        :param survey_floods: list n*2 array like [(年份int, 洪水流量float), ……]  历史调查特大洪水资料
+        :param floods: list n*2 array like [(年份int, 洪水流量float), …]  实测连序系列洪水资料
+        :param survey_floods: list n*2 array like [(年份int, 洪水流量float), …]
+                                历史调查特大洪水资料
         :param N: int 重现期
         :param l: int 连序系列中的特大洪水项数
         :param method: str or list 估计参数的方法
@@ -376,7 +378,8 @@ class PearsonThreeDiscontinuousFit(PearsonThreeContinuousFit):
                             "fit2"->适线法_离差绝对值和准则，采用矩法初步估计，然后适线；
                             "fit3"->适线法_相对离差平方和准则，采用矩法初步估计，然后适线。
                             "all" -> 以上所有方法对比
-        :param is_fit_avg: bool 适线时是否对均值进行寻优。True表示对均值寻优(默认)，False表示采用矩法计算的均值。
+        :param is_fit_avg: bool 适线时是否对均值进行寻优。True表示对均值寻优(默认)，
+                            False表示采用矩法计算的均值。
                             在 method设置为非"moment"时生效。
         """
         self.survey_floods = sorted(survey_floods, key=itemgetter(1), reverse=True)
@@ -391,7 +394,8 @@ class PearsonThreeDiscontinuousFit(PearsonThreeContinuousFit):
         self.n = len(floods)
         # 特大洪水(包含历史调查和连序系列中选取的)
         self.extra_floods = sorted(
-            survey_floods + sorted(floods, key=itemgetter(1), reverse=True)[0:l], key=itemgetter(1), reverse=True
+            survey_floods + sorted(floods, key=itemgetter(1), reverse=True)[0:l],
+            key=itemgetter(1), reverse=True
         )
         # 特大洪水的年份(包含历史调查和连序系列中选取的)
         self.extra_floods_years = [year for year, _ in self.extra_floods]
@@ -400,13 +404,14 @@ class PearsonThreeDiscontinuousFit(PearsonThreeContinuousFit):
 
     def _calc_pms(self):
         # 特大洪水经验频率
-        pm_d = [(year, q, (i + 1) / (self.N + 1)) for i, (year, q) in enumerate(self.all_floods) if
-                year in self.extra_floods_years]
+        pm_d = [(year, q, (i + 1) / (self.N + 1)) for i, (year, q) in
+                enumerate(self.all_floods) if year in self.extra_floods_years]
 
         # n-l 个连序洪水的经验频率
         pm_c = [(year, q,
-                 self.a / (self.N + 1) + (1 - self.a / (self.N + 1)) * (i + 1 - self.l) / (self.n - self.l + 1))
-                for i, (year, q) in enumerate(self.floods) if year not in self.extra_floods_years]
+                 self.a / (self.N + 1) + (1 - self.a / (self.N + 1)) * (i + 1 - self.l) / (
+                             self.n - self.l + 1)) for i, (year, q) in enumerate(self.floods)
+                if year not in self.extra_floods_years]
 
         # 整合经验频率
         pms = sorted([*pm_c, *pm_d], key=itemgetter(2))
@@ -424,21 +429,28 @@ class PearsonThreeDiscontinuousFit(PearsonThreeContinuousFit):
 
         # 变差系数
         cv = 1 / qa * np.sqrt(1 / (self.N - 1) * (
-                np.sum([(q_b - qa) ** 2 for q_b in q_bs]) + (self.N - self.a) / (self.n - self.l) * np.sum(
+                np.sum([(q_b - qa) ** 2 for q_b in q_bs]) + (self.N - self.a) / (
+                self.n - self.l) * np.sum(
             [(q_c - qa) ** 2 for q_c in q_cs])))
 
         # 偏态系数
-        cs = self.N * (np.sum([(q_b - qa) ** 3 for q_b in q_bs]) + (self.N - self.a) / (self.n - self.l) * np.sum(
-            [(q_c - qa) ** 3 for q_c in q_cs])) / ((self.N - 1) * (self.N - 2) * qa ** 3 * cv ** 3)
+        cs = self.N * (np.sum([(q_b - qa) ** 3 for q_b in q_bs]) + (self.N - self.a) / (
+                self.n - self.l) * np.sum(
+            [(q_c - qa) ** 3 for q_c in q_cs])) / (
+                     (self.N - 1) * (self.N - 2) * qa ** 3 * cv ** 3)
         return [cv, cs, qa]
 
     def _draw_scatter(self):
         # 绘制连序洪水系列散点
         survey_years = list(zip(*self.survey_floods))[0]
-        star_pms = np.array([[year, q, pm] for year, q, pm in self.pms if year in survey_years]).T
-        pms = np.array([[year, q, pm] for year, q, pm in self.pms if year not in survey_years]).T
-        plt.scatter(self.norm.ppf(pms[2]) - self.U, pms[1], c='#000000', s=10, zorder=3, label="\n实测历年最大洪水\n")
-        plt.scatter(self.norm.ppf(star_pms[2]) - self.U, star_pms[1], c='#808080', s=25, zorder=3, marker="*",
+        star_pms = np.array(
+            [[year, q, pm] for year, q, pm in self.pms if year in survey_years]).T
+        pms = np.array(
+            [[year, q, pm] for year, q, pm in self.pms if year not in survey_years]).T
+        plt.scatter(self.norm.ppf(pms[2]) - self.U, pms[1], c='#000000', s=10, zorder=3,
+                    label="\n实测历年最大洪水\n")
+        plt.scatter(self.norm.ppf(star_pms[2]) - self.U, star_pms[1], c='#808080', s=25,
+                    zorder=3, marker="*",
                     label="\n调查历史特大洪水\n")
 
 
@@ -476,4 +488,3 @@ if __name__ == '__main__':
 
     p2 = PearsonThreeDiscontinuousFit(**data2)
     p2.show()
-

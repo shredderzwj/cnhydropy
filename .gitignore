@@ -111,9 +111,6 @@ venv.bak/
 static/spider/
 *.sqlite3
 
-/data/
-/tools/
-/config/config.json
-migrate_data_to_database.py
-migrate_data_to_database-muti.py
-markdownServerRun.bat
+hydrology/stream_flood_henan/data
+hydrology/stream_flood_henan/contour/transform_param.py
+

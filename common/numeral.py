@@ -38,9 +38,13 @@ def sheng_jin(a, b=0.0, c=0.0, d=0.0):
         if delta > eps:
             Y1 = A * b + 3 * a * ((- B + sqrt(delta)) / 2)
             Y2 = A * b + 3 * a * ((- B - sqrt(delta)) / 2)
-            imag = (sqrt(3) / 2 * (copysign(fabs(Y1) ** (1 / 3), Y1) - copysign(fabs(Y2) ** (1 / 3), Y2))) / 3 / a
-            real_ = (- b + (copysign(fabs(Y1) ** (1 / 3), Y1) + copysign(fabs(Y2) ** (1 / 3), Y2)) / 2) / 3 / a
-            X1 = (- b - (copysign(fabs(Y1) ** (1 / 3), Y1) + copysign(fabs(Y2) ** (1 / 3), Y2))) / 3 / a
+            imag = (sqrt(3) / 2 * (
+                        copysign(fabs(Y1) ** (1 / 3), Y1) - copysign(fabs(Y2) ** (1 / 3),
+                                                                     Y2))) / 3 / a
+            real_ = (- b + (copysign(fabs(Y1) ** (1 / 3), Y1) + copysign(fabs(Y2) ** (1 / 3),
+                                                                         Y2)) / 2) / 3 / a
+            X1 = (- b - (copysign(fabs(Y1) ** (1 / 3), Y1) + copysign(fabs(Y2) ** (1 / 3),
+                                                                      Y2))) / 3 / a
             X2 = complex(real_, imag)
             X3 = complex(real_, -imag)
 

@@ -15,7 +15,11 @@ def is_in_area(point, points):
     # 数据处理
     x, y = (float(point[0]), float(point[1]))
     ax, ay = list(zip(*points))
-    
+
+    # 如果给定点在多边形外边框以外，那么此点肯定不在多边形内部！
+    if not (min(ax) <= x <= max(ax) and min(ay) <= y <= max(ay)):
+        return False
+
     # 保证多边形的顶点不位于射线上
     while True:
         # 假定射线所在直线方程 ax + by + c = 0; (x, y) 为端点， (xp, yp)为方向
@@ -37,10 +41,12 @@ def is_in_area(point, points):
         tmpf1 = a * ax[i] + b * ay[i] + c
         tmpf2 = a * ax[i + 1] + b * ay[i + 1] + c
         tmpa = math.acos(
-            ((ax[i] - x) * (xp - x) + (ay[i] - y) * (yp - y)) / math.sqrt((ax[i] - x) ** 2 + (ay[i] - y) ** 2) / math.sqrt(
+            ((ax[i] - x) * (xp - x) + (ay[i] - y) * (yp - y)) / math.sqrt(
+                (ax[i] - x) ** 2 + (ay[i] - y) ** 2) / math.sqrt(
                 (xp - x) ** 2 + (yp - y) ** 2))
         tmpb = math.acos(((ax[i + 1] - x) * (xp - x) + (ay[i + 1] - y) * (yp - y)) / math.sqrt(
-            (ax[i + 1] - x) ** 2 + (ay[i + 1] - y) ** 2) / math.sqrt((xp - x) ** 2 + (yp - y) ** 2))
+            (ax[i + 1] - x) ** 2 + (ay[i + 1] - y) ** 2) / math.sqrt(
+            (xp - x) ** 2 + (yp - y) ** 2))
         if (tmpf1 * tmpf2 < 0) and (tmpa + tmpb - math.pi < 0):
             jd += 1
         if tmpf1 * tmpf2 == 0:
