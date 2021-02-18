@@ -5,7 +5,7 @@
 import os
 import json
 
-from cnhydropy.utils.register import singleton
+from cnhydropy.utils.decorators import singleton
 
 RESOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
 

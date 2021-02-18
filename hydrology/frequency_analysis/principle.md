@@ -40,7 +40,7 @@ $$S = \sqrt{\frac1{n-1} \sum_{i=1}^n{(X_i - \overline{X}})^2}$$
 
 $$C_v = \frac{S}{\overline{X}}$$
 
-$$C_s = \frac{n \sum_{i=1}^n {(X_i-\overline{X})^2}} {(n-1)(n-2) \overline{X}^3 C_v^3}$$
+$$C_s = \frac{n \sum_{i=1}^n {(X_i-\overline{X})^3}} {(n-1)(n-2) \overline{X}^3 C_v^3}$$
 
 
 式中：

@@ -12,7 +12,7 @@ from pyproj import Proj
 import pandas as pd
 
 from cnhydropy.common.topology import is_in_area
-from cnhydropy.utils.register import singleton
+from cnhydropy.utils.decorators import singleton
 try:
     from cnhydropy.hydrology.stream_flood_henan.contour import transform_param as tp
 except ModuleNotFoundError:

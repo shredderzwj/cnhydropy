@@ -21,23 +21,19 @@ class Documentation(object):
         except NameError:
             raise NameError('MD2Html类未定义')
 
-    @property
-    def principle_html(self):
-        return self.get_md_str(self.principle_file_path)
+    def principle_html(self, **kwargs):
+        return self.get_html_str(self.principle_file_path, **kwargs)
 
-    @property
-    def documentation_html(self):
-        return self.get_html_str(self.documentation_file_path)
+    def documentation_html(self, **kwargs):
+        return self.get_html_str(self.documentation_file_path, **kwargs)
 
-    @property 
-    def principle_and_documentation_html(self):
+    def principle_and_documentation_html(self, **kwargs):
         principle_md_str = self.get_md_str(self.principle_file_path, encoding='utf-8')
         documentation_md_str = self.get_md_str(self.documentation_file_path, encoding='utf-8')
         merge_md_str = re.sub(r'\[TOC\]', '', '%s\n\n%s' % (principle_md_str, documentation_md_str))
         merge_md_str = '[TOC]\n\n%s' % merge_md_str
-        return self.get_html_str(merge_md_str, from_str=True)
+        return self.get_html_str(merge_md_str, from_str=True, **kwargs)
 
-    @property
-    def source_html(self):
-        return self.get_html_str(self.source_file_path)
+    def source_html(self, **kwargs):
+        return self.get_html_str(self.source_file_path, **kwargs)
 

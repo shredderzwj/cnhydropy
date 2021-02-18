@@ -250,9 +250,9 @@ class PearsonThreeContinuousFit(PearsonThree):
         n = len(self.floods)
         years, qs = zip(*[(x, y) for x, y in self.floods])
         qa = np.average(qs)
-        s = np.sqrt(1 / (n - 1) * np.sum([(q - qa) ** 2 for q in qs]))
+        s = np.sqrt(1 / (n - 1) * np.sum([(q - qa)**2 for q in qs]))
         cv = s / qa
-        cs = n * np.sum([(q - qa) ** 3 for q in qs]) / ((n - 1) * (n - 2) * qa ** 3 * cv ** 3)
+        cs = n * np.sum([(q - qa)**3 for q in qs]) / ((n - 1) * (n - 2) * qa**3 * cv**3)
         return [cv, cs, qa]
 
     def __optimize_goal_fit(self, p, qs, pms, avg, method):
