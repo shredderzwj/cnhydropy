@@ -4,9 +4,14 @@
 from collections import defaultdict
 
 import numpy as np
+import matplotlib.pyplot as plt
+# plt.switch_backend('qt5agg')  # 切换 matplotlib 绘图后端为agg。
+# 设置 matplotlib 字体，解决中文乱码的问题（linux平台需要安装 SimHei 字体，macOS没用过）
+plt.rcParams['font.family'] = ['sans-serif']
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
 
-from cnhydropy.common import plt
-from cnhydropy.hydrology.stream_flood_henan.relationship import Relationship
+from ..relationship import Relationship
 
 
 class ReasoningPeakFlow(object):
@@ -48,9 +53,9 @@ class ReasoningPeakFlow(object):
         tau = 1
         psi = 1
         while np.abs(q - qm) > 1e-3:
-            q = (q + qm) / 2
+            q = (q + qm) / 2.0
             tau = 0.278 * self.L / (
-                    self.m * self.J ** (1 / 3) * q ** 0.25
+                    self.m * self.J**(1.0 / 3.0) * q**0.25
             )
             psi = 1 - self.mu * tau**self.n(tau) / self.S
             qm = 0.278 * psi * self.S * self.F / tau**self.n(tau)
@@ -84,15 +89,16 @@ class ReasoningPeakFlow(object):
 
 class FloodProcess(object):
     """洪水过程"""
-    def __init__(self, net_rain: dict, qm: float, tau: float, F: float, R: float):
+    def __init__(self, p: float, net_rain: list, qm: float, tau: float, F: float, R: float):
         """
+        :param p: float 频率
         :param net_rain: list 净雨过程
         :param qm: float 洪峰流量
         :param tau: float 汇流时段
         :param F: float 流域面积，km2
         :param R: float 设计净雨，mm
         """
-        self.net_rain, self.qm, self.tau, self.F = net_rain, qm, tau, F
+        self.p, self.net_rain, self.qm, self.tau, self.F = p, net_rain, qm, tau, F
         self.R = R
 
     @property
@@ -101,12 +107,14 @@ class FloodProcess(object):
         洪水过程线
         :return list 数据结构为 [(t1, q1), (t2, q2), ……]
         """
+        import pprint
         max_rain_t = sorted(self.net_rain, key=lambda x: x[1])[-1][0]
         taus = [t for t in np.arange(max_rain_t, 0, -self.tau)][1:]
         taus.reverse()
         taus += [t for t in np.arange(max_rain_t, 24 + self.tau, self.tau)]
+        net_rain = {int(rain[0]): rain[1] for rain in self.net_rain}
+        net_rain[0] = 0
         net_rains = [rain[1] for rain in self.net_rain]
-
         R = defaultdict(float)
         for i, t in enumerate(taus):
             if i == 0:
@@ -121,26 +129,19 @@ class FloodProcess(object):
                            sum(net_rains[int(taus[i - 1]) + 1:])
 
         flood = {t: 0.278*r*self.F / self.tau for t, r in R.items() if r > 0}
+        # flood[0] = 0
         flood[min(flood.keys()) - self.tau if min(flood.keys()) - self.tau > 0 else 0] = 0
         flood[max(flood.keys()) + self.tau] = 0
 
-        # 同倍比缩放洪量修正
-        ratio = self.qm / max(flood.values())
-        for t, q in flood.items():
-            flood[t] = q * ratio
+        # 同倍比缩放修正洪峰
+        # ratio = self.qm / max(flood.values())
+        # for t, q in flood.items():
+        #     flood[t] = q * ratio
 
-        # 设计洪水过程线的洪量修正
-        floods = sorted(list(flood.items()), key=lambda x: x[0])
-        fm = 0.278 * self.R * self.F - self.qm * self.tau
-        fz = 0
-        for i, f in enumerate(floods[1:]):
-            fz += (f[1] + floods[i-1][1]) * self.tau / 2
-        fz -= self.qm * self.tau
-        ratio = fm / fz
-        for t, q in flood.items():
-            if not np.abs(q - self.qm) < 1e-2:
-                flood[t] = q * ratio if q * ratio < self.qm else self.qm
-
+        # 修正洪峰
+        ts, qs = zip(*flood.items())
+        qm_t = ts[qs.index(max(qs))]  # 洪峰出现的时段
+        flood[qm_t] = self.qm
         return sorted(list(flood.items()), key=lambda x: x[0])
 
     def flood(self, t: float = None):
@@ -158,52 +159,72 @@ class FloodProcess(object):
             hourly_r[i] = r(i)
         qm_t, qm = sorted(r.points, key=lambda x: x[1])[-1]
         hourly_r[qm_t] = qm
-        return sorted(list(hourly_r.items()), key=lambda x: x[0])
+
+        # 设计洪水过程线的洪量修正
+        flows = sorted(list(hourly_r.items()), key=lambda x: x[0])
+        w1 = self.calc_process_w(flows)
+        ratio = (self.wRF - t * 3600.0 * self.qm) / (w1 - t * 3600.0 * self.qm)
+
+        flows_result = []
+        for t, q in flows:
+            if abs(qm_t - t) < 1e-8:
+                flows_result.append((qm_t, self.qm))
+                continue
+            flows_result.append((t, q*ratio))
+        return flows_result
 
     @property
-    def w(self):
+    def wRF(self):
         """由暴雨径流关系（设计净雨）计算的洪量"""
-        return 1000 * self.R * self.F
+        return 1000.0 * self.R * self.F
 
-    @property
-    def w1(self):
-        """由洪水过程线计算的洪量"""
-        flows = self.flows
+    @staticmethod
+    def calc_process_w(flows):
         s = 0
         for i, flow in enumerate(flows[:-1]):
             a = flow[1]
             b = flows[i + 1][1]
             h = flows[i + 1][0] - flow[0]
-            s += (a + b) * h * 3600 / 2
+            s += (a + b) * h * 3600.0 / 2.0
         return s
 
-    def create_figure(self, figsize=(12.8, 7.2), title=None):
+    @property
+    def w(self):
+        """由洪水过程线计算的洪量"""
+        flows = self.flood()
+        return self.calc_process_w(flows)
+
+    def create_figure(self, figsize=(9.6, 5.4), title=None, xlabel=None, ylabel=None):
         """创建绘制曲线的figure对象"""
         if hasattr(self, 'fig'):
             return self.fig
         if title is None:
-            title = '洪水过程线'
+            title = '设计洪水过程线(设计频率：%.2f%%)' % (self.p*100)
         self.fig = plt.figure(title, figsize=figsize)
-        plt.title(title, {"size": 16})
-        plt.xlabel('历时$\\tau(h)$', {'size': 14})
-        plt.ylabel('流量($m^3/s$)', {'size': 14})
+        plt.title(title, {"size": 15})
+        plt.xlabel(xlabel if xlabel else '历时$\\tau(h)$', {'size': 13})
+        plt.ylabel(ylabel if ylabel else '流量($m^3/s$)', {'size': 13})
         plt.grid(linestyle='--', linewidth=1, zorder=1)
         flood = self.flows
         x, y = zip(*flood)
+        max_q = max(y)
+        max_q_x = x[y.index(max_q)]
+        plt.text(max_q_x, max_q, '$Q_m=%.2fm^3/s$  $W=%.2f$万$m^3$' % (max_q, self.w*1e-4), {'size': 11})
         plt.plot(x, y)
         plt.xticks([i for i in range(int(flood[-1][0]) + 2)])
+        # plt.legend('设计频率：%.2f%%' % (self.p*100))
         return self.fig
 
     def show(self, *args, **kwargs):
         """显示绘图"""
-        if not hasattr(self, 'fig'):
-            self.create_figure(*args, **kwargs)
-        plt.show()
         plt.cla()
         plt.close()
+        if not hasattr(self, 'fig'):
+            self.create_figure(*args, **kwargs)
+        self.fig.show()
         delattr(self, 'fig')
 
-    def save(self, path, format='png', dpi=96, figsize=(12.8, 7.2), title=None, **kwargs):
+    def save(self, path, format='png', dpi=96, figsize=(9.6, 5.4), title=None, **kwargs):
         """
         将图保存至文件
         :param path: 文件保存路径。
@@ -222,67 +243,6 @@ class FloodProcess(object):
         plt.cla()
         plt.close()
         delattr(self, 'fig')
-
-
-if __name__ == '__main__':
-    # 导包
-    from cnhydropy.hydrology.stream_flood_henan.stream import Stream, DesignStream
-    from cnhydropy.hydrology.stream_flood_henan.relationship import RelationshipPRHills
-    from cnhydropy.hydrology.stream_flood_henan.relationship import RelationshipThetaM
-
-    """输入流域特征属性，计算暴雨参数"""
-    F = 72              # 流域面积
-    L = 18              # 河道长度
-    J = 0.003          # 河道平均比降
-    coord = (113, 34)   # 流域重心坐标
-    stream = Stream(*coord)     # 暴雨参数对象（只与流域特征相关，也就是查图集得到的参数）
-
-    """指定设计频率，计算设计暴雨参数"""
-    p = 1 / 100  # 设计频率
-    design_stream = DesignStream(stream, F, p, project_type=1)  # 设计暴雨参数对象
-    design_hf_1h = design_stream.design_hf_1h  # 设计1小时雨量
-    hourly_net_rain = design_stream.hourly_net_rain()  # 逐时净雨
-    pa = RelationshipPRHills().pa(design_stream.area, p)  # 前期影响雨量
-    R = RelationshipPRHills().R(design_stream.area,
-                                pa + design_stream.design_hf_24h)  # 设计净雨
-    n1 = design_stream.n1
-    n2 = design_stream.n2
-    n3 = design_stream.n3
-
-    """计算设计流量及汇流时间"""
-    mu = design_stream.mu  # 平均入渗强度
-    theta = RelationshipThetaM().theta(F, L, J)  # θ流域特征系数
-    m = RelationshipThetaM().m(stream.area, theta)  # 汇流参数
-    peak_flow = ReasoningPeakFlow(F, L, J, design_hf_1h, n1, n2, n3, mu, m)
-    qm = peak_flow.qm       # 洪峰流量
-    tau = peak_flow.tau     # 洪峰汇流时间
-
-    """计算洪水过程线"""
-    flood_process = FloodProcess(hourly_net_rain, qm, tau, F, R)
-
-    """展示结果"""
-    print('-'*20, '暴雨参数(查图结果)', '-'*20)
-    stream.show_param()
-    print('\n')
-
-    print('-'*20, '设计暴雨', '-'*20)
-    design_stream.show_param()
-    print('\n')
-
-    print('-' * 20, '洪水过程线', '-' * 20)
-    print('\t时间\t流量m3/s')
-    for (t, q) in flood_process.flood():
-        print('\t%d\t%.2f' % (int(t), float(q)))
-    print('\n')
-    print('流域特征系数θ：%.2f' % theta)
-    print('汇流参数m：%.2f' % m)
-    print('洪峰径流系数Ψ：%.2f' % peak_flow.psi)
-    print('洪峰汇流时间τ：%.2f h' % tau)
-    print('洪峰流量Qm：%.2f m3/s' % qm)
-    print('设计净雨计算洪量W：%.2f 万m3' % (flood_process.w / 10000))
-    print('洪水过程计算洪量W：%.2f 万m3' % (flood_process.w1 / 10000))
-
-    flood_process.show()
 
 
 
