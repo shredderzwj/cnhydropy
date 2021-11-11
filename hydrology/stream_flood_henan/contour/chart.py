@@ -92,7 +92,7 @@ class ContourInterface(TransformerInterface):
     def __call__(self, lng: float, lat: float):
         """对等值线图进行插值，获取指定坐标（经纬度坐标）处的值"""
         coord = super(ContourInterface, self).__call__(lng, lat)
-        return self.contour_interpolation(*coord)
+        return float(self.contour_interpolation(*coord))
 
 
 class Area84TJBase(TransformerInterface):
