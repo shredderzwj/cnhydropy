@@ -7,8 +7,8 @@ from collections import defaultdict
 import numpy as np
 from scipy import interpolate, stats, optimize
 
-from stream_flood_henan import contour
-from stream_flood_henan import relationship
+from .. import contour
+from .. import relationship
 
 
 class PearsonThree(object):
