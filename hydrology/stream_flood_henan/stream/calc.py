@@ -124,7 +124,9 @@ class DesignStreamBase(object):
     _alpha_3d = None
 
     def __init__(self, stream: Stream, f: float, p: float,
-                 ratio: float = 3.5, project_type: int = 1):
+                 ratio: float = 3.5, project_type: int = 1,
+                 alpha_10min=None, alpha_1h=None, alpha_6h=None, alpha_24h=None,
+                 alpha_3d=None):
         """
         :param stream: Stream 暴雨参数对象
         :param f: float 集雨面积，平方公里
@@ -147,8 +149,13 @@ class DesignStreamBase(object):
         self.get_kp_6h = PearsonThree(self.stream.cv_6h, self.stream.cv_6h * ratio).calc_kp
         self.get_kp_24h = PearsonThree(self.stream.cv_24h, self.stream.cv_24h * ratio).calc_kp
         # 点面折减系数初始化
-        self.__init_alpha(f)
-        
+        r = Stream.get_alpha_relationship(self.area)
+        self._alpha_10min = r.r10min(f) if alpha_10min is None else alpha_10min
+        self._alpha_1h = r.r1h(f) if alpha_1h is None else alpha_1h
+        self._alpha_6h = r.r6h(f) if alpha_6h is None else alpha_6h
+        self._alpha_24h = r.r24h(f) if alpha_24h is None else alpha_24h
+        self._alpha_3d = r.r3d(f) if alpha_3d is None else alpha_3d
+
     def show_param(self):
         print('\n'.join(self.__str__().split('\n')[1:]))
 
@@ -172,11 +179,11 @@ class DesignStreamBase(object):
     def __init_alpha(self, f):
         """点面折减系数"""
         r = Stream.get_alpha_relationship(self.area)
-        self._alpha_10min = r.r10min(f)
-        self._alpha_1h = r.r1h(f)
-        self._alpha_6h = r.r6h(f)
-        self._alpha_24h = r.r24h(f)
-        self._alpha_3d = r.r3d(f)
+        self._alpha_10min = r.r10min(f) if self._alpha_10min is None else self._alpha_10min
+        self._alpha_1h = r.r1h(f) if self._alpha_1h is None else self._alpha_1h
+        self._alpha_6h = r.r6h(f) if self.alpha_6h is None else self._alpha_6h
+        self._alpha_24h = r.r24h(f) if self._alpha_24h is None else self._alpha_24h
+        self._alpha_3d = r.r3d(f) if self._alpha_3d is None else self._alpha_3d
 
     @property
     def alpha_10min(self):
@@ -202,6 +209,22 @@ class DesignStreamBase(object):
     def alpha_3d(self):
         """3d点面折减系数"""
         return self._alpha_3d
+
+    @property
+    def kp_10min(self):
+       return self.get_kp_10min(self.p)
+
+    @property
+    def kp_1h(self):
+        return self.get_kp_1h(self.p)
+
+    @property
+    def kp_6h(self):
+        return self.get_kp_6h(self.p)
+
+    @property
+    def kp_24h(self):
+        return self.get_kp_24h(self.p)
 
     @staticmethod
     def __check_p(p):
@@ -344,7 +367,7 @@ class DesignStreamHill(DesignStreamBase):
     Pa = None
 
     def __init__(self, stream: Stream, f: float, p: float,
-                 ratio: float = 3.5, project_type: int = 1, curve_id=None, mu=None, Imax=None, Pa=None):
+                 ratio: float = 3.5, project_type: int = 1, curve_id=None, mu=None, Imax=None, Pa=None, **kwargs):
         """
         :param stream: Stream 暴雨参数对象
         :param f: float 集雨面积，平方公里
@@ -354,7 +377,7 @@ class DesignStreamHill(DesignStreamBase):
                 1：中小水库（计算希遇频率洪水，考虑不同时段雨量变差系数Cv及暴雨点面关系）
                 2：小型农水（计算常用频率洪水，不考虑频率的变化及暴雨点面关系的影响，概化计算，不建议采用）
         """
-        super(DesignStreamHill, self).__init__(stream, f, p, ratio, project_type)
+        super(DesignStreamHill, self).__init__(stream, f, p, ratio, project_type, **kwargs)
 
         self.__mu = mu
         pr = relationship.RelationshipPRHills()
@@ -443,6 +466,11 @@ class DesignStreamHill(DesignStreamBase):
             net_rain = [(t, max(0, h)*self.R/c_r) for t, h in net_rain]
         # print(sum([h for (t, h) in net_rain]), self.R)
         return net_rain
+
+
+    @property
+    def hourly_net_rain_avg(self):
+        return self.hourly_net_rain()
 
     @staticmethod
     def sum_rain(rain):
