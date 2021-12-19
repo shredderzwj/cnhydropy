@@ -116,15 +116,17 @@ class Stream(object):
         return s
 
 
-class DesignStreamBase(object):
+class DesignStreamInterface(object):
     _alpha_10min = None
     _alpha_1h = None
     _alpha_6h = None
     _alpha_24h = None
     _alpha_3d = None
+    pr = None
 
     def __init__(self, stream: Stream, f: float, p: float,
                  ratio: float = 3.5, project_type: int = 1,
+                 curve_id=None, mu=None, Imax=None, Pa=None,
                  alpha_10min=None, alpha_1h=None, alpha_6h=None, alpha_24h=None,
                  alpha_3d=None):
         """
@@ -136,6 +138,8 @@ class DesignStreamBase(object):
                 1：中小水库（计算希遇频率洪水，考虑不同时段雨量变差系数Cv及暴雨点面关系）
                 2：小型农水（计算常用频率洪水，不考虑频率的变化及暴雨点面关系的影响，概化计算，不建议采用）
         """
+        if self.pr is None:
+            raise NotImplementedError('设计暴雨接口必须实现')
         self.stream = stream
         self.lng, self.lat = (stream.lng, stream.lat)
         self.__area = stream.area
@@ -155,6 +159,12 @@ class DesignStreamBase(object):
         self._alpha_6h = r.r6h(f) if alpha_6h is None else alpha_6h
         self._alpha_24h = r.r24h(f) if alpha_24h is None else alpha_24h
         self._alpha_3d = r.r3d(f) if alpha_3d is None else alpha_3d
+
+        self.__mu = mu
+        self.Imax = Imax if Imax else self.pr.Imax(curve_id)
+        self.Pa = Pa if Pa else self.pr.pa(curve_id, p)
+        self.R = self.pr.R(curve_id, self.design_hf_24h + self.Pa)
+        self.curve = self.pr.curve(curve_id)
 
     def show_param(self):
         print('\n'.join(self.__str__().split('\n')[1:]))
@@ -354,37 +364,6 @@ class DesignStreamBase(object):
             return self.design_hf_24h * 24**(self.n3 - 1) * t**(1 - self.n3)
         else:
             raise ValueError('暴雨历时取值范围应为(0, 24]')
-    
-
-class DesignStreamHill(DesignStreamBase):
-    _alpha_10min = None
-    _alpha_1h = None
-    _alpha_6h = None
-    _alpha_24h = None
-    _alpha_3d = None
-    mu = None
-    Imax = None
-    Pa = None
-
-    def __init__(self, stream: Stream, f: float, p: float,
-                 ratio: float = 3.5, project_type: int = 1, curve_id=None, mu=None, Imax=None, Pa=None, **kwargs):
-        """
-        :param stream: Stream 暴雨参数对象
-        :param f: float 集雨面积，平方公里
-        :param p: float 设计频率，注意，此参数非百分比。
-        :param project_type: int 工程类型
-        :param ratio: float Cs/Cv值。
-                1：中小水库（计算希遇频率洪水，考虑不同时段雨量变差系数Cv及暴雨点面关系）
-                2：小型农水（计算常用频率洪水，不考虑频率的变化及暴雨点面关系的影响，概化计算，不建议采用）
-        """
-        super(DesignStreamHill, self).__init__(stream, f, p, ratio, project_type, **kwargs)
-
-        self.__mu = mu
-        pr = relationship.RelationshipPRHills()
-        self.Imax = Imax if Imax else pr.Imax(curve_id)
-        self.Pa = Pa if Pa else pr.pa(curve_id, p)
-        self.R = pr.R(curve_id, self.design_hf_24h + self.Pa)
-        self.curve = pr.curve(curve_id)
 
     def __str__(self):
         # s = str(super().__str__())
@@ -467,7 +446,6 @@ class DesignStreamHill(DesignStreamBase):
         # print(sum([h for (t, h) in net_rain]), self.R)
         return net_rain
 
-
     @property
     def hourly_net_rain_avg(self):
         return self.hourly_net_rain()
@@ -487,3 +465,10 @@ class DesignStreamHill(DesignStreamBase):
     def mu(self, mu):
         self.__mu = mu
 
+
+class DesignStreamHill(DesignStreamInterface):
+    pr = relationship.RelationshipPRHills()
+
+
+class DesignStreamFlat(DesignStreamInterface):
+    pr = relationship.RelationshipPRFlat()

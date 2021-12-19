@@ -249,6 +249,19 @@ class RelationshipPRFlat(MultiTypeRelationshipBase):
         else:
             raise ValueError('输入区域代码错误！')
 
+    def curve(self, area):
+        mapping = {
+            1: '汝河、闾河',
+            2: '洪河',
+            3: '汾泉河、黑茨河',
+            4: '浍河、包河、颍河',
+            5: '沱河、王引河',
+            6: '涡河、惠济河',
+            7: '豫北',
+            8: '沙土区',
+        }
+        return self.__filter_area(mapping, area)
+
     def R(self, area: int, ppa: float):
         """
         河南省平原地区降雨径流关系曲线图（73图集）
